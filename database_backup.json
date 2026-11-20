@@ -1,10 +1,32 @@
 {
   "backup_meta": {
     "version": "3.1",
-    "created_at": "2026-11-20 15:33:59"
+    "created_at": "2026-11-20 15:34:17",
+    "stats": {
+      "main_users": 3,
+      "main_admins": 1,
+      "clone_bots": 0,
+      "total_clone_users": 0
+    }
   },
   "main_bot": {
     "users": [
+      {
+        "user_id": 7178473075,
+        "username": "Ramrambhaiyonaiseho",
+        "first_name": "Mai_Baba_Tillu",
+        "join_date": "2026-11-20 15:34:08",
+        "referrer": null,
+        "credits": 5,
+        "is_blocked": 0,
+        "is_premium": 0,
+        "premium_until": null,
+        "joined_channels": "[]",
+        "total_searches": 0,
+        "last_active": "2026-11-20 15:34:08",
+        "money": 0,
+        "clone_bots": 0
+      },
       {
         "user_id": 7941870327,
         "username": "owner",
