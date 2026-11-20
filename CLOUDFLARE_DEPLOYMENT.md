@@ -68,17 +68,21 @@ The feature branch now runs Python compilation and unit tests first. If both
 pass on a push to `cloudflare-worker-foundation`, GitHub Actions deploys the
 tested commit with Pywrangler.
 
-Add these two values under **GitHub repository → Settings → Secrets and
-variables → Actions → New repository secret**. These are GitHub Actions
-secrets, separate from the three Worker secrets above:
+Add these four values under **GitHub repository → Settings → Secrets and
+variables → Actions → New repository secret**. These GitHub Actions secrets
+are separate from the three Worker secrets above:
 
-- `CLOUDFLARE_API_TOKEN`: create a Cloudflare API token with the minimum
-  permissions needed to deploy Workers and access the configured D1 binding.
+- `CLOUDFLARE_API_TOKEN`: Cloudflare API token with Workers Scripts:Edit,
+  Account Settings:Read, and D1:Edit permissions for this deployment.
 - `CLOUDFLARE_ACCOUNT_ID`: your Cloudflare account ID.
+- `TELEGRAM_BOT_TOKEN`: the current bot token (same value as Worker
+  `BOT_TOKEN`).
+- `TELEGRAM_WEBHOOK_SECRET`: same value as the Worker webhook secret.
 
-Do not add these two names as Worker secrets. Do not put either value in source
-code or chat. Once configured, future feature-branch pushes deploy only after
-the test job succeeds. The workflow does not deploy `main`.
+The workflow deploys only after Python tests pass, then registers the Telegram
+webhook at the URL below. These are GitHub Actions secrets, not Worker secrets.
+Never put their values in source code or chat. The workflow does not deploy
+`main`.
 
 ## Telegram webhook URL
 
