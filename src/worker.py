@@ -1,4 +1,4 @@
-"""Cloudflare Python Worker entry point for the OsInt Telegram bot foundation.
+﻿"""Cloudflare Python Worker entry point for the OsInt Telegram bot foundation.
 
 This module intentionally contains no polling loop, local server, local files,
 or private-personal-data lookup integrations.
@@ -8,7 +8,8 @@ from __future__ import annotations
 import logging
 from urllib.parse import urlparse
 
-from js import JSON, fetch
+from js import JSON, Object, fetch
+from pyodide.ffi import to_js
 from workers import Response, WorkerEntrypoint
 
 from bot_logic import reply_for, valid_webhook_secret
@@ -23,11 +24,14 @@ async def _send_telegram_message(token: str, chat_id: int | str, text: str) -> N
     payload = {"chat_id": chat_id, "text": text}
     response = await fetch(
         endpoint,
-        {
-            "method": "POST",
-            "headers": {"content-type": "application/json"},
-            "body": JSON.stringify(payload),
-        },
+        to_js(
+            {
+                "method": "POST",
+                "headers": {"content-type": "application/json"},
+                "body": JSON.stringify(payload),
+            },
+            dict_converter=Object.fromEntries,
+        ),
     )
     if not response.ok:
         # Never log the URL: it contains the bot token.
@@ -71,7 +75,19 @@ class Default(WorkerEntrypoint):
 
             expected = getattr(self.env, "TELEGRAM_WEBHOOK_SECRET", None)
             supplied = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
+
+            if not expected or not supplied:
+                logger.error(
+                    "Webhook auth missing: expected_present=%s supplied_present=%s",
+                    bool(expected), bool(supplied)
+                )
+                return Response("Unauthorized", status=401)
+
             if not valid_webhook_secret(expected, supplied):
+                logger.error(
+                    "Webhook auth mismatch: expected_length=%s supplied_length=%s",
+                    len(str(expected)), len(str(supplied))
+                )
                 return Response("Unauthorized", status=401)
 
             token = getattr(self.env, "BOT_TOKEN", None)
@@ -109,3 +125,4 @@ class Default(WorkerEntrypoint):
                 return Response("Webhook processing failed", status=500)
 
         return Response("Not Found", status=404)
+
