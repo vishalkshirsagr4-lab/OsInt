@@ -84,9 +84,20 @@ Use the deployed URL and the same secret value configured above. Telegram's
 `setWebhook` API accepts a `secret_token` parameter; the Worker checks the
 matching `X-Telegram-Bot-Api-Secret-Token` header.
 
-Do not publish your bot token or webhook secret. Configure the webhook from a
-trusted local terminal using environment variables rather than placing secrets
-in shell history.
+From a trusted local terminal, enter the values interactively so they are not
+written into the command history:
+
+```bash
+read -rsp "Telegram bot token: " BOT_TOKEN; echo
+read -rsp "Webhook secret: " WEBHOOK_SECRET; echo
+read -rp "Worker URL (https://...workers.dev): " WORKER_URL
+curl -fsS "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+  --data-urlencode "url=${WORKER_URL%/}/telegram/webhook" \
+  --data-urlencode "secret_token=${WEBHOOK_SECRET}"
+unset BOT_TOKEN WEBHOOK_SECRET
+```
+
+Do not publish your bot token or webhook secret.
 
 ## 6. Smoke tests
 
