@@ -537,16 +537,18 @@ print("✅ SIGTERM/SIGINT handler registered — safe shutdown backup enabled")
 # Render/Heroku/VPS par environment variables mein set karo:
 #   BOT_TOKEN = "8872936013:AAFfjeSMwldDBAUn4UwiRrwcjGiU0yO8Y3c"
 #   OWNER_ID  = "7981894574"
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "8664757210:AAEnMFGFXQayo8gNVbFr1vi3opQ24DQu7yc")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN environment variable set nahi hai! Render > Environment mein BOT_TOKEN add karo.")
 
 # ✅ OWNER_ID — hardcoded (env se override bhi ho sakta hai)
-_owner_id_raw = os.environ.get("OWNER_ID", "8557470100").strip()
+_owner_id_raw = os.environ.get("OWNER_ID", "").strip()
+if not _owner_id_raw:
+    raise RuntimeError("OWNER_ID environment variable is required.")
 try:
     OWNER_ID = int(_owner_id_raw)
-except ValueError:
-    OWNER_ID = 8557470100
+except ValueError as exc:
+    raise RuntimeError("OWNER_ID must be a numeric Telegram user ID.") from exc
 
 # Database and Logs Channel
 DB_CHANNEL = os.environ.get("DB_CHANNEL", "-1003930518361").strip()
