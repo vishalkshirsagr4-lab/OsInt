@@ -124,6 +124,12 @@ class Default(WorkerEntrypoint):
 
     async def _daily(self, uid: str) -> str:
         today = datetime.now(timezone.utc).date().isoformat()
+        already_claimed = await self._first(
+            "SELECT 1 AS claimed FROM daily_claims WHERE telegram_id = ? AND claim_date = ?",
+            uid, today,
+        )
+        if already_claimed:
+            return "You have already claimed today's reward. Come back tomorrow."
         await self.env.DB.batch([
             self.env.DB.prepare(
                 "INSERT OR IGNORE INTO daily_claims (telegram_id, claim_date) VALUES (?, ?)"
