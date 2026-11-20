@@ -1,10 +1,4 @@
-CREATE TABLE IF NOT EXISTS bot_users (
-    telegram_user_id TEXT PRIMARY KEY,
-    username TEXT,
-    first_name TEXT,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_bot_users_last_seen
-    ON bot_users(last_seen_at);
+-- This initial migration intentionally creates no user-profile table.
+-- The current Worker stores no Telegram profile data or message contents.
+-- Keep this migration for a stable D1 migration baseline; add only the
+-- minimum state tables required by future, reviewed features.
