@@ -1,30 +1,36 @@
 # OsInt
 
-## Cloudflare migration
+## Cloudflare Worker migration
 
-The `cloudflare-worker-foundation` branch contains a Cloudflare Python Worker,
-a Telegram webhook endpoint, D1 health binding, and deployment instructions.
+The `cloudflare-worker-foundation` branch contains the Cloudflare Python Worker,
+Telegram webhook handler, and D1-backed account/economy features. The original
+`osintfinl.py` is retained for reference and is not imported by the Worker.
 
-**This is not yet a feature-complete replacement for the legacy bot.** The
-original `osintfinl.py` is retained unchanged for reference and is not imported
-by the Worker. Its polling loop, local server startup, local SQLite persistence,
-and private-personal-data lookup integrations are not part of this migration.
+### Supported commands
 
-### Quick start
+- `/start`, `/menu`, `/help`
+- `/balance` — account credits and successful referral count
+- `/daily` — one daily credit claim (UTC day)
+- `/refer` — personal referral link
+- `/redeem CODE` — redeem a valid owner-issued code
+- `/admin`, `/makecode CREDITS USES` — owner-only code management
 
-1. Switch to the `cloudflare-worker-foundation` branch.
-2. Follow [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md).
-3. Create a Cloudflare D1 database and set its ID in `wrangler.jsonc`.
-4. Add `BOT_TOKEN` and `TELEGRAM_WEBHOOK_SECRET` as Worker secrets.
-5. Deploy and register the Telegram webhook.
+The Worker stores only the Telegram numeric account ID, username, first name,
+credit balance, referral metadata, and credit transaction records needed for
+these features. It does not store message bodies or lookup queries.
 
-### Currently migrated
+Private-person data lookup integrations and spam/bomber automation are
+intentionally excluded. This branch is not a feature-complete port of every
+legacy command. Review [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md)
+for the required Cloudflare secrets and webhook setup.
 
-- `/start`
-- `/menu`
-- `/help`
-- Protected webhook validation and basic health checks.
+### Infrastructure
 
-Ordinary non-command messages are ignored. The Worker does not persist Telegram
-profiles, message bodies, or lookup queries. Other legitimate legacy features
-must be ported and tested incrementally before production cutover.
+- Worker: `osint-cloudflare`
+- Webhook route: `/telegram/webhook`
+- Health route: `/health`
+- D1 binding: `DB`
+- Migrations: `migrations/`
+
+Do not switch production traffic until the Worker runtime and Telegram webhook
+have been smoke-tested with the configured secrets.
