@@ -221,6 +221,9 @@ class Default(WorkerEntrypoint):
         text = message.get("text") or ""
         if not isinstance(user, dict) or not isinstance(chat, dict) or not isinstance(text, str):
             return ""
+        # Ignore bot-authored messages to prevent bot-to-bot command loops.
+        if user.get("is_bot"):
+            return ""
         command = parse_command(text)
         if not command:
             return ""
@@ -297,7 +300,9 @@ class Default(WorkerEntrypoint):
             update = await request.json()
             if not isinstance(update, dict):
                 return Response.json({"ok": True, "ignored": True})
-            message = update.get("message") or update.get("edited_message")
+            # Process only original messages. Edited commands must not replay
+            # side effects such as creating additional redeem codes.
+            message = update.get("message")
             if not isinstance(message, dict):
                 return Response.json({"ok": True, "ignored": True})
             chat = message.get("chat") or {}
