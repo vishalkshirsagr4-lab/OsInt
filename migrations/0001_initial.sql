@@ -1,0 +1,4 @@
+-- This initial migration intentionally creates no user-profile table.
+-- The current Worker stores no Telegram profile data or message contents.
+-- Keep this migration for a stable D1 migration baseline; add only the
+-- minimum state tables required by future, reviewed features.

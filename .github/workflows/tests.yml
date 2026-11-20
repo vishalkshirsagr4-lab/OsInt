@@ -1,0 +1,62 @@
+name: Python tests and Cloudflare deploy
+
+on:
+  push:
+    branches:
+      - main
+      - cloudflare-worker-foundation
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile Python sources
+        run: python -m compileall -q src tests
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+  deploy:
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/cloudflare-worker-foundation'
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Worker tooling
+        run: uv sync --locked
+      - name: Deploy Python Worker
+        run: uv run pywrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Register Telegram webhook
+        run: |
+          curl --silent --show-error --fail-with-body \
+            --request POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+            --data-urlencode "url=https://osint-cloudflare.vishalkshirsagr4.workers.dev/telegram/webhook" \
+            --data-urlencode "secret_token=${TELEGRAM_WEBHOOK_SECRET}"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
