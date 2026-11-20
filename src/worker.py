@@ -43,7 +43,7 @@ async def _send_telegram_message(token: str, chat_id: int | str, text: str) -> N
             {
                 "method": "POST",
                 "headers": {"content-type": "application/json"},
-                "body": JSON.stringify({"chat_id": chat_id, "text": text}),
+                "body": JSON.stringify(to_js({"chat_id": chat_id, "text": text}, dict_converter=Object.fromEntries)),
             },
             dict_converter=Object.fromEntries,
         ),
