@@ -60,3 +60,33 @@ Do not share the token or secret while configuring the webhook.
 7. Verify an invalid webhook secret is rejected with HTTP 401.
 
 Do not treat the deployment as production-ready until these checks pass.
+
+
+## Automatic deployment from GitHub Actions
+
+The feature branch now runs Python compilation and unit tests first. If both
+pass on a push to `cloudflare-worker-foundation`, GitHub Actions deploys the
+tested commit with Pywrangler.
+
+Add these two values under **GitHub repository → Settings → Secrets and
+variables → Actions → New repository secret**. These are GitHub Actions
+secrets, separate from the three Worker secrets above:
+
+- `CLOUDFLARE_API_TOKEN`: create a Cloudflare API token with the minimum
+  permissions needed to deploy Workers and access the configured D1 binding.
+- `CLOUDFLARE_ACCOUNT_ID`: your Cloudflare account ID.
+
+Do not add these two names as Worker secrets. Do not put either value in source
+code or chat. Once configured, future feature-branch pushes deploy only after
+the test job succeeds. The workflow does not deploy `main`.
+
+## Telegram webhook URL
+
+The Telegram webhook must point to:
+
+`https://osint-cloudflare.vishalkshirsagr4.workers.dev/telegram/webhook`
+
+The webhook registration must use the same value as the Worker secret
+`TELEGRAM_WEBHOOK_SECRET` as Telegram's `secret_token`. Adding Worker secrets
+does not by itself register or change Telegram's webhook. Confirm the webhook
+is registered to this exact URL after the first successful deployment.
