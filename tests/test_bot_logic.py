@@ -7,11 +7,20 @@ class BotLogicTests(unittest.TestCase):
     def test_parse_command_with_bot_suffix(self):
         self.assertEqual(parse_command("/start@ExampleBot"), "/start")
 
+    def test_parse_command_is_case_insensitive(self):
+        self.assertEqual(parse_command("/HELP"), "/help")
+
     def test_non_command(self):
         self.assertEqual(parse_command("hello"), "")
 
+    def test_non_command_is_ignored(self):
+        self.assertEqual(reply_for("hello"), "")
+
     def test_help_command(self):
         self.assertIn("/start", reply_for("/help"))
+
+    def test_start_uses_name_safely(self):
+        self.assertIn("Hello, Sam!", reply_for("/start", "Sam"))
 
     def test_unknown_command_does_not_run_legacy_lookup(self):
         self.assertIn("not available", reply_for("/lookup 1234567890").lower())
@@ -20,6 +29,7 @@ class BotLogicTests(unittest.TestCase):
         self.assertTrue(valid_webhook_secret("secret", "secret"))
         self.assertFalse(valid_webhook_secret("secret", "wrong"))
         self.assertFalse(valid_webhook_secret("", "secret"))
+        self.assertFalse(valid_webhook_secret("secret", None))
 
 
 if __name__ == "__main__":
