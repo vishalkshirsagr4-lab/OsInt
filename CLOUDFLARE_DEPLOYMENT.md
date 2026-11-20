@@ -1,125 +1,62 @@
 # Cloudflare deployment
 
-## Current status
+## Current architecture
 
-This branch is a Cloudflare Python Worker foundation. It currently supports
-only `/start`, `/menu`, and `/help`. The original `osintfinl.py` remains
-unchanged and is not imported. Private-personal-data lookup integrations are
-intentionally excluded. This is not a feature-complete replacement.
+- Worker: `osint-cloudflare`
+- Telegram webhook: `/telegram/webhook`
+- Health endpoint: `/health`
+- D1 database binding: `DB`
+- D1 database: `osint-db`
+- Migration directory: `migrations/`
 
-## 1. Get the branch
+The Worker supports account balances, daily credits, referrals, redeem codes,
+and owner-only code creation. Private-person data lookups and spam/bomber
+automation are intentionally not included.
 
-```bash
-git clone -b cloudflare-worker-foundation https://github.com/vishalkshirsagr4-lab/OsInt.git
-cd OsInt
-```
+## Required Worker secrets
 
-Or, in an existing clone:
+Create these three secrets under **Cloudflare Dashboard → Workers & Pages →
+osint-cloudflare → Settings → Variables and Secrets**. Choose **Secret** for
+each value, not plain text.
 
-```bash
-git switch cloudflare-worker-foundation
-git pull
-```
+| Secret name | Value to enter | Purpose |
+|---|---|---|
+| `BOT_TOKEN` | Current Telegram bot token from BotFather | Sends bot replies and calls Telegram Bot API |
+| `TELEGRAM_WEBHOOK_SECRET` | A private random string, 1–256 characters; use letters, numbers, underscores or hyphens | Authenticates incoming Telegram webhook requests |
+| `OWNER_ID` | Your Telegram numeric user ID (digits only) | Restricts `/admin` and `/makecode` to the owner |
 
-## 2. Create D1
+**Important for this deployment:**
+- `OWNER_ID` was already uploaded successfully in the earlier setup. Keep it; do not change it unless your Telegram numeric user ID is wrong.
+- The old bot token was revoked. Make sure `BOT_TOKEN` is the newly generated, current token. Re-upload it if you have not done so since revocation.
+- Keep the existing `TELEGRAM_WEBHOOK_SECRET` if it is still available and matches the value used when registering the webhook. If you replace it, you must register the webhook again with the same new value.
+- Never paste any of these values into chat, source files, GitHub commits, screenshots, or public logs.
 
-```bash
-npx wrangler login
-npx wrangler d1 create osint-db
-```
+## D1 database
 
-Copy the database ID printed by Cloudflare into `wrangler.jsonc`, replacing
-`REPLACE_WITH_D1_DATABASE_ID`. Keep the binding name `DB`. Then apply:
+The production D1 database is configured in `wrangler.jsonc` with binding
+`DB`. The account/economy migration `0002_accounts_economy.sql` has been
+applied to the remote database. Do not manually recreate or drop its tables.
 
-```bash
-npx wrangler d1 migrations apply osint-db --remote
-```
+## Registering the Telegram webhook
 
-## 3. Where to set production secrets
+After deploying the Worker, register this exact URL with Telegram:
 
-The Worker requires these exact secret names:
+`https://osint-cloudflare.vishalkshirsagr4.workers.dev/telegram/webhook`
 
-- `BOT_TOKEN`: Telegram bot token.
-- `TELEGRAM_WEBHOOK_SECRET`: random webhook authentication secret (1–256
-  characters; letters, numbers, underscore, and hyphen).
+Use Telegram's Bot API `setWebhook` with:
+- `url`: the URL above
+- `secret_token`: the exact value stored as `TELEGRAM_WEBHOOK_SECRET`
 
-**Easiest method — Cloudflare dashboard:**
+Do not share the token or secret while configuring the webhook.
 
-1. Open https://dash.cloudflare.com/ and sign in.
-2. Go to **Workers & Pages**.
-3. Select Worker **osint-cloudflare** (it appears after the first deployment).
-4. Open **Settings → Variables and Secrets**.
-5. Click **Add**, choose type **Secret**.
-6. Add `BOT_TOKEN` and paste its value, then save.
-7. Add a second Secret named `TELEGRAM_WEBHOOK_SECRET`, then save.
-8. Deploy the changes.
+## Smoke-test checklist
 
-**Termux method — Wrangler prompts you for each value:**
+1. Open `https://osint-cloudflare.vishalkshirsagr4.workers.dev/` — service status should be returned.
+2. Open `https://osint-cloudflare.vishalkshirsagr4.workers.dev/health` — it should report D1 connected.
+3. Send `/start`, `/balance`, `/daily`, and `/refer` to the Telegram bot.
+4. Verify a second `/daily` claim on the same UTC date is rejected.
+5. Verify a non-owner cannot use `/admin` or `/makecode`.
+6. Verify the owner can create a redeem code and a user can redeem it once.
+7. Verify an invalid webhook secret is rejected with HTTP 401.
 
-```bash
-npx wrangler login
-npx wrangler secret put BOT_TOKEN
-npx wrangler secret put TELEGRAM_WEBHOOK_SECRET
-```
-
-Paste each value only into Wrangler's interactive prompt. Do not put secrets in
-`wrangler.jsonc`, source code, GitHub, command arguments, screenshots, or chat.
-
-**For local testing only:**
-
-```bash
-cp .dev.vars.example .dev.vars
-nano .dev.vars
-```
-
-Fill in the two values in `.dev.vars`. This file is ignored by Git and must
-never be committed. Local secrets are separate from production secrets.
-
-## 4. Install and test
-
-```bash
-uv sync
-uv run pywrangler dev
-```
-
-Check `http://localhost:8787/` and `http://localhost:8787/health`.
-The health route should report D1 connected.
-
-## 5. Deploy
-
-After replacing the D1 ID and configuring both production secrets:
-
-```bash
-uv run pywrangler deploy
-```
-
-Use the exact workers.dev URL printed by Wrangler.
-
-## 6. Register Telegram webhook
-
-Enter the values interactively so they are not included in command history:
-
-```bash
-read -rsp "Telegram bot token: " BOT_TOKEN; echo
-read -rsp "Webhook secret: " WEBHOOK_SECRET; echo
-read -rp "Worker URL: " WORKER_URL
-curl -fsS "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
-  --data-urlencode "url=${WORKER_URL%/}/telegram/webhook" \
-  --data-urlencode "secret_token=${WEBHOOK_SECRET}"
-unset BOT_TOKEN WEBHOOK_SECRET
-```
-
-The response should contain `"ok":true`. Do not share the token or webhook
-secret, or screenshots containing them.
-
-## 7. Smoke tests
-
-- `/` returns service status.
-- `/health` reports D1 connected.
-- Telegram `/start`, `/menu`, and `/help` reply.
-- Wrong webhook secret receives HTTP 401.
-- Unknown commands receive a safe not-migrated response.
-
-Do not switch production traffic until all required legitimate features have
-been ported and tested. Cloudflare Workers are request-driven; do not add
-polling loops, local Flask startup, background threads, or local SQLite.
+Do not treat the deployment as production-ready until these checks pass.
