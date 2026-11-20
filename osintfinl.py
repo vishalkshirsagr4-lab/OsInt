@@ -9536,7 +9536,7 @@ def premium_btn(m):
         "✨ <b>ɴᴏ ᴄʀᴇᴅɪᴛ ᴄᴏꜱᴛ</b>\n"
         "✨ <b>ᴀʟʟ ꜰᴇᴀᴛᴜʀᴇꜱ ᴜɴʟᴏᴄᴋᴇᴅ</b>\n\n"
         "💳 ᴜꜱᴇ <b>Purchase Premium</b> button to buy with ₹ Money!\n"
-        "📲 ᴄᴏɴᴛᴀᴄᴛ: @ImmortalDady"
+        "📲 ᴄᴏɴᴛᴀᴄᴛ: @Piko_866"
     )
     bot.reply_to(m, format_message(text), parse_mode='HTML')
 
@@ -9849,10 +9849,10 @@ def help_btn(m: telebot.types.Message) -> None:
 5️⃣ Ab <code>!menu</code> type karo aur use karo!
 
 <b>📞 ᴄᴏɴᴛᴀᴄᴛ & ꜱᴜᴩᴩᴏʀᴛ:</b>
-👑 Owner: @ImmortalDady
+👑 Owner: @Piko_866
 💎 Premium ke liye contact karo
 🎫 Redeem codes ke liye contact karo
-🛠 Koi problem ya suggestion → @ImmortalDady"""
+🛠 Koi problem ya suggestion → @Piko_866"""
 
     # Prepend user status to help
     credits = get_credits(uid)
@@ -9876,7 +9876,7 @@ def help_btn(m: telebot.types.Message) -> None:
         bot.reply_to(m, format_message(full_help), parse_mode='HTML')
     except Exception as _he2:
         # Message too long? Send in parts
-        bot.reply_to(m, format_message("<b>ℹ️ ʜᴇʟᴩ</b>\n━━━━━━━━━━━━━━━━━━\n📌 Kisi bhi button dabao info lene ke liye!\n📞 Support: @ImmortalDady"), parse_mode='HTML')
+        bot.reply_to(m, format_message("<b>ℹ️ ʜᴇʟᴩ</b>\n━━━━━━━━━━━━━━━━━━\n📌 Kisi bhi button dabao info lene ke liye!\n📞 Support: @Piko_866"), parse_mode='HTML')
 
 # ── User History Feature ──
 
@@ -10226,7 +10226,7 @@ def process_clone_token(m):
         "<b>✅ ᴄʟᴏɴᴇ ʙᴏᴛ ʀᴇQᴜᴇꜱᴛ ꜱᴇɴᴛ!</b>\n━━━━━━━━━━━━━━━━━━\n"
         "Aapka token save ho gaya!\n"
         "✅ Admin approve karte hi aapka bot automatically start ho jayega.\n"
-        "📞 Contact: @ImmortalDady"
+        "📞 Contact: @Piko_866"
     ), parse_mode='HTML')
 
 # BOMBER FEATURE
@@ -11981,7 +11981,7 @@ def _notify_clone_user(mm, approve: bool):
                 "<b>✅ ᴀᴩᴩʀᴏᴠᴇᴅ! ᴄʟᴏɴᴇ ʙᴏᴛ ꜱᴛᴀʀᴛᴇᴅ!</b>\n━━━━━━━━━━━━━━━━━━\n"
                 "?? Aapka clone bot chal raha hai!\n"
                 "🎁 <b>+10 ʙᴏɴᴜꜱ ᴄʀᴇᴅɪᴛꜱ</b> mile clone bot banane ke liye!\n"
-                "📞 Contact: @ImmortalDady"
+                "📞 Contact: @Piko_866"
             ), parse_mode='HTML')
         except Exception: pass
         send_to_db_channel("🤖 ᴄʟᴏɴᴇ ᴀᴩᴩʀᴏᴠᴇᴅ", target_uid, f"🔑 ᴛᴏᴋᴇɴ: <code>{token_input}</code>\n✅ ʙʏ ᴀᴅᴍɪɴ: <code>{mm.from_user.id}</code>")
@@ -11995,7 +11995,7 @@ def _notify_clone_user(mm, approve: bool):
             bot.send_message(target_uid, format_message(
                 "<b>❌ ᴄʟᴏɴᴇ ʀᴇᴊᴇᴄᴛᴇᴅ</b>\n━━━━━━━━━━━━━━━━━━\n"
                 "Aapka clone bot request reject ho gaya.\n"
-                "📞 Contact: @ImmortalDady"
+                "📞 Contact: @Piko_866"
             ), parse_mode='HTML')
         except Exception: pass
         send_to_logs_channel(target_uid, "❌ ᴄʟᴏɴᴇ ʀᴇᴊᴇᴄᴛᴇᴅ", f"Token: {token_input[:20]}... by admin {mm.from_user.id}")
@@ -12031,7 +12031,7 @@ def _admin_start_clone(mm):
                 "<b>✅ ᴀᴩᴩʀᴏᴠᴇᴅ! ᴄʟᴏɴᴇ ʙᴏᴛ ꜱᴛᴀʀᴛᴇᴅ!</b>\n━━━━━━━━━━━━━━━━━━\n"
                 "🎉 Aapka clone bot chal raha hai!\n"
                 "🎁 <b>+10 ʙᴏɴᴜꜱ ᴄʀᴇᴅɪᴛꜱ</b> mile clone bot banane ke liye!\n"
-                "📞 Contact: @ImmortalDady"
+                "📞 Contact: @Piko_866"
             ), parse_mode='HTML')
         except Exception: pass
     bot.send_message(mm.chat.id, format_message(f"<b>{'🟢 Clone started!' if launched else '⚠️ Already running'}</b>\n🔑 <code>{token_input}</code>\n👤 User: <code>{target_uid}</code>"), parse_mode='HTML')
@@ -12099,7 +12099,7 @@ def _admin_stop_clone(mm):
     ), parse_mode='HTML')
     try:
         bot.send_message(target_uid, format_message(
-            "<b>🔴 ᴄʟᴏɴᴇ ʙᴏᴛ ʙᴀɴᴅ ᴋɪʏᴀ ɢᴀʏᴀ</b>\nAdmin ne aapka clone bot band kar diya.\n📞 Contact: @ImmortalDady"
+            "<b>🔴 ᴄʟᴏɴᴇ ʙᴏᴛ ʙᴀɴᴅ ᴋɪʏᴀ ɢᴀʏᴀ</b>\nAdmin ne aapka clone bot band kar diya.\n📞 Contact: @Piko_866"
         ), parse_mode='HTML')
     except Exception: pass
     send_to_logs_channel(target_uid, "🔴 ᴄʟᴏɴᴇ ꜱᴛᴏᴩᴩᴇᴅ", f"Token: {token_input[:20]}... by admin {mm.from_user.id}")
@@ -12277,7 +12277,7 @@ def _cb_clone_approve_reject(call):
                 "<b>✅ ᴀᴩᴩʀᴏᴠᴇᴅ! ᴄʟᴏɴᴇ ʙᴏᴛ ꜱᴛᴀʀᴛᴇᴅ!</b>\n━━━━━━━━━━━━━━━━━━\n"
                 "🎉 Aapka clone bot chal raha hai!\n"
                 "🎁 <b>+10 ʙᴏɴᴜꜱ ᴄʀᴇᴅɪᴛꜱ</b> mile!\n"
-                "📞 Contact: @ImmortalDady"
+                "📞 Contact: @Piko_866"
             ), parse_mode='HTML')
         except Exception: pass
         send_to_logs_channel(target_uid, "🤖 ᴄʟᴏɴᴇ ᴀᴩᴩʀᴏᴠᴇᴅ", f"By admin {call.from_user.id}")
@@ -12297,7 +12297,7 @@ def _cb_clone_approve_reject(call):
         try:
             bot.send_message(target_uid, format_message(
                 "<b>❌ ᴄʟᴏɴᴇ ʀᴇᴊᴇᴄᴛᴇᴅ</b>\n━━━━━━━━━━━━━━━━━━\n"
-                "Aapka clone request reject ho gaya.\n📞 Contact: @ImmortalDady"
+                "Aapka clone request reject ho gaya.\n📞 Contact: @Piko_866"
             ), parse_mode='HTML')
         except Exception: pass
         send_to_logs_channel(target_uid, "❌ ᴄʟᴏɴᴇ ʀᴇᴊᴇᴄᴛᴇᴅ", f"By admin {call.from_user.id}")
@@ -12461,7 +12461,7 @@ def _admin_delete_clone_from_num(mm):
             try:
                 bot.send_message(owner_uid, format_message(
                     "<b>⚠️ Aapka clone bot delete kar diya gaya!</b>\n"
-                    "Admin se contact karo: @ImmortalDady"
+                    "Admin se contact karo: @Piko_866"
                 ), parse_mode='HTML')
             except Exception: pass
         send_to_logs_channel(uid, '🗑️ ᴄʟᴏɴᴇ ᴅᴇʟᴇᴛᴇᴅ', f'Token: {tok[:20]}... | Owner: {owner_uid}')
@@ -15205,7 +15205,7 @@ def _grp_no_credits(m):
     bot.reply_to(m, format_message("<b>❌ ᴄʀᴇᴅɪᴛꜱ ᴋʜᴀᴛᴀᴍ!</b>\n💬 /balance — balance dekho\n🎁 /daily — daily claim karo\n🎫 /redeem CODE — redeem karo"), parse_mode='HTML')
 
 def _grp_prem_required(m, feature):
-    bot.reply_to(m, format_message(f"<b>💎 {feature} — ᴩʀᴇᴍɪᴜᴍ ᴏɴʟʏ!</b>\n💳 Premium ke liye contact: @ImmortalDady"), parse_mode='HTML')
+    bot.reply_to(m, format_message(f"<b>💎 {feature} — ᴩʀᴇᴍɪᴜᴍ ᴏɴʟʏ!</b>\n💳 Premium ke liye contact: @Piko_866"), parse_mode='HTML')
 
 def _grp_maint(m, feature_key):
     is_maint, reason = is_feature_maintenance(feature_key)
@@ -15359,7 +15359,7 @@ def grp_cmd_username(m):
     if not _grp_credits_ok(uid): _grp_no_credits(m); return
     parts = (m.text or '').split(maxsplit=1)
     if len(parts) < 2:
-        bot.reply_to(m, format_message("<b>🔍 Usage:</b> <code>/username @ImmortalDady</code>"), parse_mode='HTML'); return
+        bot.reply_to(m, format_message("<b>🔍 Usage:</b> <code>/username @Piko_866</code>"), parse_mode='HTML'); return
     q = parts[1].replace('@','').strip()
     st = bot.reply_to(m, format_message("<b>🔍 Searching...</b>"), parse_mode='HTML')
     card, photo_fid, merged_r = build_combined_tg_card(q, "username", "𝗨𝗦𝗘𝗥𝗡𝗔𝗠𝗘 𝗜𝗡𝗙𝗢", "🔍")
@@ -16399,7 +16399,7 @@ def _cpm_add_do(m, token):
             try:
                 c_inst = _clone_instances.get(token)
                 if c_inst:
-                    c_inst.send_message(uid_t, f"<blockquote><b>🎉 ᴩʀᴇᴍɪᴜᴍ ᴀᴄᴛɪᴠᴀᴛᴇᴅ!</b>\n✨ {days} ᴅᴀʏꜱ premium added!\n⏳ Expires: <code>{until_str[:10]}</code>\n\n⚡ ʙᴏᴛ ᴍᴀᴅᴇ ʙʏ : @ImmortalDady</blockquote>", parse_mode='HTML')
+                    c_inst.send_message(uid_t, f"<blockquote><b>🎉 ᴩʀᴇᴍɪᴜᴍ ᴀᴄᴛɪᴠᴀᴛᴇᴅ!</b>\n✨ {days} ᴅᴀʏꜱ premium added!\n⏳ Expires: <code>{until_str[:10]}</code>\n\n⚡ ʙᴏᴛ ᴍᴀᴅᴇ ʙʏ : @Piko_866</blockquote>", parse_mode='HTML')
             except Exception: pass
             try: send_to_logs_channel(m.from_user.id, '💎 ᴄʟᴏɴᴇ ᴩʀᴇᴍɪᴜᴍ ᴀᴅᴅ', f'Clone: {_clone_name(token)} | User: {uid_t} | {days} days | Until: {until_str[:10]}')
             except Exception: pass
@@ -16434,7 +16434,7 @@ def _cpm_rm_do(m, token):
         ), parse_mode='HTML')
         try:
             c_inst = _clone_instances.get(token)
-            if c_inst: c_inst.send_message(uid_t, "<blockquote><b>⚠️ ᴩʀᴇᴍɪᴜᴍ ʀᴇᴍᴏᴠᴇᴅ</b>\nAapka premium remove kar diya gaya.\n\n⚡ ʙᴏᴛ ᴍᴀᴅᴇ ʙʏ : @ImmortalDady</blockquote>", parse_mode='HTML')
+            if c_inst: c_inst.send_message(uid_t, "<blockquote><b>⚠️ ᴩʀᴇᴍɪᴜᴍ ʀᴇᴍᴏᴠᴇᴅ</b>\nAapka premium remove kar diya gaya.\n\n⚡ ʙᴏᴛ ᴍᴀᴅᴇ ʙʏ : @Piko_866</blockquote>", parse_mode='HTML')
         except Exception: pass
         try: send_to_logs_channel(m.from_user.id, '💎 Clone Premium REMOVED', f'User: {uid_t} | Clone: {_clone_name(token)}')
         except Exception: pass
