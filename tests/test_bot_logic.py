@@ -1,6 +1,6 @@
 import unittest
 
-from src.bot_logic import parse_command, reply_for, valid_webhook_secret
+from src.bot_logic import command_args, parse_command, valid_positive_int, valid_webhook_secret
 
 
 class BotLogicTests(unittest.TestCase):
@@ -13,17 +13,15 @@ class BotLogicTests(unittest.TestCase):
     def test_non_command(self):
         self.assertEqual(parse_command("hello"), "")
 
-    def test_non_command_is_ignored(self):
-        self.assertEqual(reply_for("hello"), "")
+    def test_command_arguments(self):
+        self.assertEqual(command_args("/redeem abc 123"), ["abc", "123"])
 
-    def test_help_command(self):
-        self.assertIn("/start", reply_for("/help"))
-
-    def test_start_uses_name_safely(self):
-        self.assertIn("Hello, Sam!", reply_for("/start", "Sam"))
-
-    def test_unknown_command_does_not_run_legacy_lookup(self):
-        self.assertIn("not available", reply_for("/lookup 1234567890").lower())
+    def test_positive_integer_validation(self):
+        self.assertEqual(valid_positive_int("25"), 25)
+        self.assertIsNone(valid_positive_int("0"))
+        self.assertIsNone(valid_positive_int("-1"))
+        self.assertIsNone(valid_positive_int("1.5"))
+        self.assertIsNone(valid_positive_int("99999999"))
 
     def test_webhook_secret(self):
         self.assertTrue(valid_webhook_secret("secret", "secret"))
