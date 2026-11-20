@@ -18,17 +18,22 @@ def parse_command(text: str) -> str:
     """Return a normalized Telegram command without its optional @bot suffix."""
     if not isinstance(text, str):
         return ""
-    first = text.strip().split(maxsplit=1)[0] if text.strip() else ""
+    stripped = text.strip()
+    if not stripped:
+        return ""
+    first = stripped.split(maxsplit=1)[0]
     if not first.startswith("/"):
         return ""
     return first.split("@", 1)[0].lower()
 
 
 def reply_for(text: str, first_name: str = "") -> str:
-    """Build replies only for the safe, migrated command set."""
+    """Build replies only for slash commands in the safe migrated command set."""
     command = parse_command(text)
-    name = first_name.strip() or "there"
+    if not command:
+        return ""
 
+    name = first_name.strip() or "there"
     if command == "/start":
         return (
             f"Hello, {name}! 👋\n\n"
