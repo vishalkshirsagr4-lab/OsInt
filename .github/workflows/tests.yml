@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -28,7 +29,7 @@ jobs:
         run: python -m unittest discover -s tests -v
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/cloudflare-worker-foundation'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/cloudflare-worker-foundation'
     needs: unit-tests
     runs-on: ubuntu-latest
     steps:
