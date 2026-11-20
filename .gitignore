@@ -13,3 +13,6 @@ __pycache__/
 .wrangler/
 node_modules/
 dist/
+
+# Local backup files
+*.bak
