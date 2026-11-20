@@ -4,14 +4,19 @@
   "main": "src/worker.py",
   "compatibility_date": "2026-11-20",
   "compatibility_flags": ["python_workers"],
-  "observability": { "enabled": true },
-  "secrets": { "required": ["BOT_TOKEN", "TELEGRAM_WEBHOOK_SECRET"] },
+  "observability": {
+    "enabled": true
+  },
+  "secrets": {
+    "required": ["BOT_TOKEN", "TELEGRAM_WEBHOOK_SECRET"]
+  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "osint-db",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
-      "migrations_dir": "migrations"
+      "database_id": "d123733f-ec10-42c5-9681-80a004bee11c",
+      "migrations_dir": "migrations",
+      "remote": true
     }
   ]
 }
