@@ -14,7 +14,8 @@ HELP_TEXT = (
     "/daily — claim 1 daily credit\n"
     "/refer — get your referral link\n"
     "/redeem CODE — redeem a credit code\n"
-    "/admin — owner-only tools\n\n"
+    "/admin — owner-only tools\n"
+    "/makecode CREDITS USES — owner-only redeem-code creation\n\n"
     "Private-person data lookups and spam tools are not part of this bot."
 )
 
