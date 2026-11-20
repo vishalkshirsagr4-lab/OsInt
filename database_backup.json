@@ -1,0 +1,70 @@
+{
+  "backup_meta": {
+    "version": "3.1",
+    "created_at": "2026-11-20 14:06:20",
+    "stats": {
+      "main_users": 1,
+      "main_admins": 1,
+      "clone_bots": 0,
+      "total_clone_users": 0
+    }
+  },
+  "main_bot": {
+    "users": [
+      {
+        "user_id": 7941870327,
+        "username": "owner",
+        "first_name": "Bot Owner",
+        "join_date": "2026-11-20 14:05:45",
+        "referrer": null,
+        "credits": 0,
+        "is_blocked": 0,
+        "is_premium": 0,
+        "premium_until": null,
+        "joined_channels": "[]",
+        "total_searches": 0,
+        "last_active": "2026-11-20 14:05:45",
+        "money": 0,
+        "clone_bots": 0
+      }
+    ],
+    "admins": [
+      {
+        "user_id": 7941870327,
+        "added_by": 7941870327,
+        "added_date": "2026-11-20 14:05:45",
+        "is_owner": 1
+      }
+    ],
+    "force_join_channels": [],
+    "bot_groups": [],
+    "redeem_codes": [],
+    "redeemed_users": [],
+    "feature_costs": [],
+    "feature_maintenance": [],
+    "daily_claims": [],
+    "welcome_settings": [
+      {
+        "id": 1,
+        "emoji": "❤️",
+        "caption": "ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ ɪɴꜰᴏʀᴍᴀᴛɪᴏɴ ʙᴏᴛ!",
+        "image_file_id": null,
+        "video_file_id": null,
+        "bot_dp_file_id": null,
+        "first_time_sticker": null,
+        "is_default": 1
+      }
+    ],
+    "referrals": [],
+    "search_history": [],
+    "bomber_history": [],
+    "logs": []
+  },
+  "clone_bots": {
+    "bots": [],
+    "admins": [],
+    "force_join": [],
+    "credits": []
+  },
+  "clone_user_data": {}
+}
