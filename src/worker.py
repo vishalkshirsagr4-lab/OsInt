@@ -18,7 +18,7 @@ logger = logging.getLogger("osint-worker")
 
 
 async def _send_telegram_message(token: str, chat_id: int | str, text: str) -> None:
-    """Send a Telegram message through the Workers fetch runtime."""
+    """Send a Telegram message and verify Telegram's application-level result."""
     endpoint = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {"chat_id": chat_id, "text": text}
     response = await fetch(
@@ -30,8 +30,13 @@ async def _send_telegram_message(token: str, chat_id: int | str, text: str) -> N
         },
     )
     if not response.ok:
-        # Do not log the URL: it contains the bot token.
+        # Never log the URL: it contains the bot token.
         logger.error("Telegram sendMessage failed with HTTP %s", response.status)
+        raise RuntimeError("Telegram message delivery failed")
+
+    result = await response.json()
+    if not result.ok:
+        logger.error("Telegram rejected sendMessage (error_code=%s)", result.error_code)
         raise RuntimeError("Telegram message delivery failed")
 
 
@@ -76,38 +81,28 @@ class Default(WorkerEntrypoint):
 
             try:
                 update = await request.json()
+                if not isinstance(update, dict):
+                    return Response.json({"ok": True, "ignored": True})
+
                 message = update.get("message") or update.get("edited_message")
                 if not isinstance(message, dict):
                     return Response.json({"ok": True, "ignored": True})
 
                 sender = message.get("from") or {}
                 chat = message.get("chat") or {}
-                chat_id = chat.get("id")
-                text = message.get("text") or ""
-                if chat_id is None or not text:
+                if not isinstance(sender, dict) or not isinstance(chat, dict):
                     return Response.json({"ok": True, "ignored": True})
 
-                # Store only the Telegram account fields needed for ordinary bot
-                # operation. Never store message contents or lookup queries.
-                user_id = sender.get("id")
-                if user_id is not None:
-                    await self.env.DB.prepare(
-                        """
-                        INSERT INTO bot_users (telegram_user_id, username, first_name)
-                        VALUES (?, ?, ?)
-                        ON CONFLICT(telegram_user_id) DO UPDATE SET
-                            username = excluded.username,
-                            first_name = excluded.first_name,
-                            last_seen_at = CURRENT_TIMESTAMP
-                        """
-                    ).bind(
-                        str(user_id),
-                        sender.get("username"),
-                        sender.get("first_name"),
-                    ).run()
+                chat_id = chat.get("id")
+                message_text = message.get("text") or ""
+                if chat_id is None or not isinstance(message_text, str):
+                    return Response.json({"ok": True, "ignored": True})
 
-                answer = reply_for(text, sender.get("first_name") or "")
-                await _send_telegram_message(token, chat_id, answer)
+                # Do not persist Telegram profiles, message bodies, or lookup queries.
+                answer = reply_for(message_text, sender.get("first_name") or "")
+                if answer:
+                    await _send_telegram_message(token, chat_id, answer)
+
                 return Response.json({"ok": True})
             except Exception:
                 logger.exception("Telegram webhook processing failed")
