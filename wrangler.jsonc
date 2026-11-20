@@ -8,7 +8,7 @@
     "enabled": true
   },
   "secrets": {
-    "required": ["BOT_TOKEN", "TELEGRAM_WEBHOOK_SECRET"]
+    "required": ["BOT_TOKEN", "TELEGRAM_WEBHOOK_SECRET", "OWNER_ID"]
   },
   "d1_databases": [
     {
