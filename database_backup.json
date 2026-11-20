@@ -1,13 +1,7 @@
 {
   "backup_meta": {
     "version": "3.1",
-    "created_at": "2026-11-20 15:34:31",
-    "stats": {
-      "main_users": 3,
-      "main_admins": 1,
-      "clone_bots": 0,
-      "total_clone_users": 0
-    }
+    "created_at": "2026-11-20 15:34:48"
   },
   "main_bot": {
     "users": [
@@ -80,7 +74,7 @@
         "id": 1,
         "emoji": "💀",
         "caption": "Behanchod kuch nai dala 🌚🌚",
-        "image_file_id": "AgACAgUAAxkBAAIIi2sAAViAccLwHde6-Lo3_1MTNusNcQACjRRrG5hhCFRWVIjnrEIohAEAAwIAA3gAAz0E",
+        "image_file_id": "AgACAgUAAxkBAAIJMmsAAWf5r1Nwje38xxUUaMB370fFMwACrxRrG5hhCFTaV_nOZObsLwEAAwIAA3gAAz0E",
         "video_file_id": null,
         "bot_dp_file_id": null,
         "first_time_sticker": "CAACAgUAAxkBAAIIu2sAAVzstr9qZYA_5Kc1fZmR2cTQxwACihIAApYUCFS-XmYSKp6Ckz0E",
