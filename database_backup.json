@@ -1,7 +1,13 @@
 {
   "backup_meta": {
     "version": "3.1",
-    "created_at": "2026-11-20 15:26:14"
+    "created_at": "2026-11-20 15:26:46",
+    "stats": {
+      "main_users": 2,
+      "main_admins": 1,
+      "clone_bots": 0,
+      "total_clone_users": 0
+    }
   },
   "main_bot": {
     "users": [
@@ -56,7 +62,7 @@
     "welcome_settings": [
       {
         "id": 1,
-        "emoji": "❤️",
+        "emoji": "💀",
         "caption": "ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ ɪɴꜰᴏʀᴍᴀᴛɪᴏɴ ʙᴏᴛ!",
         "image_file_id": "AgACAgUAAxkBAAIIi2sAAViAccLwHde6-Lo3_1MTNusNcQACjRRrG5hhCFRWVIjnrEIohAEAAwIAA3gAAz0E",
         "video_file_id": null,
