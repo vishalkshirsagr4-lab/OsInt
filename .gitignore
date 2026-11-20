@@ -1,0 +1,21 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Runtime databases and SQLite sidecar files
+bot.db
+bot.db-*
+database.db
+database.db-*
+*.sqlite
+*.sqlite3
+
+# Local logs
+*.log
