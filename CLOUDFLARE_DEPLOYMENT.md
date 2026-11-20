@@ -1,116 +1,125 @@
 # Cloudflare deployment
 
-## Current migration status
+## Current status
 
-This branch adds a Cloudflare Python Worker foundation, D1 schema, health route,
-and a Telegram webhook for the safe base commands `/start`, `/menu`, and
-`/help`.
+This branch is a Cloudflare Python Worker foundation. It currently supports
+only `/start`, `/menu`, and `/help`. The original `osintfinl.py` remains
+unchanged and is not imported. Private-personal-data lookup integrations are
+intentionally excluded. This is not a feature-complete replacement.
 
-The existing `osintfinl.py` is intentionally left unchanged as a legacy
-reference. It is **not** imported by the Worker: it starts a local Flask thread,
-contains a Telegram polling loop, uses local SQLite/filesystem state, and has
-private-personal-data lookup integrations that are not part of this migration.
-The remaining legitimate bot features need to be ported and tested in separate
-small steps before this branch can replace the legacy bot.
-
-## Prerequisites
-
-- A Cloudflare account with Workers and D1 enabled.
-- Python 3.12+ and Node.js installed locally.
-- `uv` installed.
-
-## 1. Create the D1 database
-
-From the repository root:
+## 1. Get the branch
 
 ```bash
+git clone -b cloudflare-worker-foundation https://github.com/vishalkshirsagr4-lab/OsInt.git
+cd OsInt
+```
+
+Or, in an existing clone:
+
+```bash
+git switch cloudflare-worker-foundation
+git pull
+```
+
+## 2. Create D1
+
+```bash
+npx wrangler login
 npx wrangler d1 create osint-db
 ```
 
-Copy the returned database ID into `wrangler.jsonc`, replacing
-`REPLACE_WITH_D1_DATABASE_ID`.
-
-Apply the migration locally and remotely:
+Copy the database ID printed by Cloudflare into `wrangler.jsonc`, replacing
+`REPLACE_WITH_D1_DATABASE_ID`. Keep the binding name `DB`. Then apply:
 
 ```bash
-npx wrangler d1 migrations apply osint-db --local
 npx wrangler d1 migrations apply osint-db --remote
 ```
 
-## 2. Install the Python Worker tooling
+## 3. Where to set production secrets
+
+The Worker requires these exact secret names:
+
+- `BOT_TOKEN`: Telegram bot token.
+- `TELEGRAM_WEBHOOK_SECRET`: random webhook authentication secret (1–256
+  characters; letters, numbers, underscore, and hyphen).
+
+**Easiest method — Cloudflare dashboard:**
+
+1. Open https://dash.cloudflare.com/ and sign in.
+2. Go to **Workers & Pages**.
+3. Select Worker **osint-cloudflare** (it appears after the first deployment).
+4. Open **Settings → Variables and Secrets**.
+5. Click **Add**, choose type **Secret**.
+6. Add `BOT_TOKEN` and paste its value, then save.
+7. Add a second Secret named `TELEGRAM_WEBHOOK_SECRET`, then save.
+8. Deploy the changes.
+
+**Termux method — Wrangler prompts you for each value:**
+
+```bash
+npx wrangler login
+npx wrangler secret put BOT_TOKEN
+npx wrangler secret put TELEGRAM_WEBHOOK_SECRET
+```
+
+Paste each value only into Wrangler's interactive prompt. Do not put secrets in
+`wrangler.jsonc`, source code, GitHub, command arguments, screenshots, or chat.
+
+**For local testing only:**
+
+```bash
+cp .dev.vars.example .dev.vars
+nano .dev.vars
+```
+
+Fill in the two values in `.dev.vars`. This file is ignored by Git and must
+never be committed. Local secrets are separate from production secrets.
+
+## 4. Install and test
 
 ```bash
 uv sync
-```
-
-Run locally:
-
-```bash
 uv run pywrangler dev
 ```
 
-The local server should expose `/` and `/health`. The webhook will return
-401 until a local `TELEGRAM_WEBHOOK_SECRET` is configured in `.dev.vars`.
+Check `http://localhost:8787/` and `http://localhost:8787/health`.
+The health route should report D1 connected.
 
-Example `.dev.vars` (never commit this file):
+## 5. Deploy
 
-```dotenv
-BOT_TOKEN=replace-with-your-telegram-bot-token
-TELEGRAM_WEBHOOK_SECRET=replace-with-a-long-random-secret
-```
-
-## 3. Configure production secrets
-
-```bash
-uv run pywrangler secret put BOT_TOKEN
-uv run pywrangler secret put TELEGRAM_WEBHOOK_SECRET
-```
-
-Enter the values when prompted. Never paste tokens into source files, commits,
-screenshots, or public issue reports.
-
-## 4. Deploy
+After replacing the D1 ID and configuring both production secrets:
 
 ```bash
 uv run pywrangler deploy
 ```
 
-Save the deployed Worker URL, for example
-`https://osint-cloudflare.<your-subdomain>.workers.dev`.
+Use the exact workers.dev URL printed by Wrangler.
 
-## 5. Register the Telegram webhook
+## 6. Register Telegram webhook
 
-Use the deployed URL and the same secret value configured above. Telegram's
-`setWebhook` API accepts a `secret_token` parameter; the Worker checks the
-matching `X-Telegram-Bot-Api-Secret-Token` header.
-
-From a trusted local terminal, enter the values interactively so they are not
-written into the command history:
+Enter the values interactively so they are not included in command history:
 
 ```bash
 read -rsp "Telegram bot token: " BOT_TOKEN; echo
 read -rsp "Webhook secret: " WEBHOOK_SECRET; echo
-read -rp "Worker URL (https://...workers.dev): " WORKER_URL
+read -rp "Worker URL: " WORKER_URL
 curl -fsS "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
   --data-urlencode "url=${WORKER_URL%/}/telegram/webhook" \
   --data-urlencode "secret_token=${WEBHOOK_SECRET}"
 unset BOT_TOKEN WEBHOOK_SECRET
 ```
 
-Do not publish your bot token or webhook secret.
+The response should contain `"ok":true`. Do not share the token or webhook
+secret, or screenshots containing them.
 
-## 6. Smoke tests
+## 7. Smoke tests
 
-- Open `/` and confirm JSON reports `status: ok`.
-- Open `/health` and confirm D1 reports `connected`.
-- Send `/start`, `/menu`, and `/help` to the Telegram bot.
-- Confirm an invalid webhook secret receives HTTP 401.
-- Confirm unknown commands receive a safe "not migrated" response.
+- `/` returns service status.
+- `/health` reports D1 connected.
+- Telegram `/start`, `/menu`, and `/help` reply.
+- Wrong webhook secret receives HTTP 401.
+- Unknown commands receive a safe not-migrated response.
 
-## Important
-
-This is a migration foundation, not a completed feature-for-feature port. Do
-not switch the production bot over until every required legitimate feature has
-a Cloudflare implementation and passing tests. Cloudflare Workers are
-request-driven: do not add `bot.polling()`, `app.run()`, background threads,
-or local SQLite persistence to the Worker.
+Do not switch production traffic until all required legitimate features have
+been ported and tested. Cloudflare Workers are request-driven; do not add
+polling loops, local Flask startup, background threads, or local SQLite.
