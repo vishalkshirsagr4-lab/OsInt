@@ -5995,60 +5995,31 @@ def _DIV(): return "━━━━━━━━━━━━━━━━━━"
 _DIV_STR = "━━━━━━━━━━━━━━━━━━"  # ✅ BUG 19 FIX: Constant version for performance
 
 def format_number_info_bold(data, number):
+    """
+    Render only non-identifying lookup status.
+    The number-info provider may return sensitive personal identity records;
+    never display or persist those fields in the Telegram response.
+    """
     IST = ZoneInfo("Asia/Kolkata")
     now = datetime.now(IST).strftime("%d %b %Y %I:%M %p")
-    records = (data or {}).get('data', [])
-    if not records:
-        return format_message(
-            f"📋 <b>𝗠𝗢𝗕𝗜𝗟𝗘 𝗡𝗨𝗠𝗕𝗘𝗥 𝗜𝗡𝗙𝗢</b>\n{_DIV()}\n"
-            f"🕐 {now}\n"
-            f"├📞 ɴᴜᴍʙᴇʀ: <code>{number}</code>\n"
-            f"└❌ ɴᴏ ʀᴇᴄᴏʀᴅꜱ ꜰᴏᴜɴᴅ\n{_DIV()}"
-        )
-    KEY_MAP = {
-        'name':('👤','ɴᴀᴍᴇ'),'fullname':('👤','ɴᴀᴍᴇ'),'mobile':('📱','ᴍᴏʙɪʟᴇ'),
-        'phone':('📱','ᴩʜᴏɴᴇ'),'fname':('👨','ꜰᴀᴛʜᴇʀ'),'fathername':('👨','ꜰᴀᴛʜᴇʀ'),
-        'father':('👨','ꜰᴀᴛʜᴇʀ'),'alt':('📲','ᴀʟᴛ ɴᴜᴍ'),'altmobile':('📲','ᴀʟᴛ ᴍᴏʙɪʟᴇ'),
-        'alternatemobile':('📲','ᴀʟᴛ ᴍᴏʙɪʟᴇ'),'address':('🏠','ᴀᴅᴅʀᴇꜱꜱ'),
-        'city':('🌆','ᴄɪᴛʏ'),'district':('🗺️','ᴅɪꜱᴛʀɪᴄᴛ'),'state':('🏞️','ꜱᴛᴀᴛᴇ'),
-        'pincode':('📍','ᴩɪɴᴄᴏᴅᴇ'),'pin':('📍','ᴩɪɴ'),'circle':('📡','ᴄɪʀᴄʟᴇ'),
-        'operator':('📡','ᴏᴩᴇʀᴀᴛᴏʀ'),'telecom':('📡','ᴛᴇʟᴇᴄᴏᴍ'),'region':('🌍','ʀᴇɢɪᴏɴ'),
-        'country':('🌍','ᴄᴏᴜɴᴛʀʏ'),'email':('📧','ᴇᴍᴀɪʟ'),'dob':('🎂','ᴅᴏʙ'),
-        'gender':('⚧','ɢᴇɴᴅᴇʀ'),'age':('🎂','ᴀɢᴇ'),'aadhaar':('🪪','ᴀᴀᴅʜᴀᴀʀ'),
-        'aadhar':('🪪','ᴀᴀᴅʜᴀᴀʀ'),'id':('🆔','ɪᴅ'),
-    }
-    SKIP = {'developer','dev','numbere','number','key','apikey','query','status','success',
-            'time','Time','source','_raw','error','message','msg','count','total','result'}
-    EMPTY = (None,'','N/A','None','null','undefined','false','False','none')
-    total = len(records)
-    lines = [
-        f"📋 <b>𝗠𝗢𝗕𝗜𝗟𝗘 𝗡𝗨𝗠𝗕𝗘𝗥 𝗜𝗡𝗙𝗢</b>",
-        f"{_DIV()}",
-        f"🕐 {now}",
-        f"📞 ɴᴜᴍʙᴇʀ: <code>{number}</code>",
-        f"📊 ᴛᴏᴛᴀʟ ʀᴇᴄᴏʀᴅꜱ: <b>{total}</b>",
-        f"{_DIV()}",
-    ]
-    for idx, item in enumerate(records, 1):
-        if total > 1:
-            lines.append(f"")
-            lines.append(f"👤 <b>ʀᴇᴄᴏʀᴅ {idx}/{total}</b>")
-        rec_fields = []
-        for k, v in item.items():
-            kl = str(k).lower().replace('_','').replace(' ','').replace('-','')
-            if kl in {s.lower().replace('_','') for s in SKIP}: continue
-            if v in EMPTY: continue
-            if isinstance(v, (dict, list)): continue
-            em, label = KEY_MAP.get(kl, (get_field_emoji(k), str(k).replace('_',' ').replace('-',' ').title()))
-            rec_fields.append((em, label, _esc(str(v))))
-        if not rec_fields:
-            lines.append("└❌ ɴᴏ ᴅᴀᴛᴀ")
-        else:
-            for i, (em, label, val) in enumerate(rec_fields):
-                c = "└" if i == len(rec_fields)-1 else "├"
-                lines.append(f"{c}{em} <b>{label}</b>: <code>{val}</code>")
-    lines.append(f"{_DIV()}")
-    return format_message("\n".join(lines))
+    result = data or {}
+    found = bool(result.get('success') and result.get('found'))
+    try:
+        count = max(0, int(result.get('count', 0) or 0))
+    except (TypeError, ValueError):
+        count = 0
+
+    if found and count:
+        status_line = f"└✅ ʟᴏᴏᴋᴜᴘ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟ — <b>{count}</b> ʀᴇꜱᴜʟᴛ(ꜱ) ᴀᴠᴀɪʟᴀʙʟᴇ"
+    else:
+        status_line = "└❌ ɴᴏ ʀᴇꜱᴜʟᴛꜱ ꜰᴏᴜɴᴅ"
+
+    return format_message(
+        f"📋 <b>𝗠𝗢𝗕𝗜𝗟𝗘 𝗡𝗨𝗠𝗕𝗘𝗥 𝗜𝗡𝗙𝗢</b>\\n{_DIV()}\\n"
+        f"🕐 {now}\\n"
+        f"├📞 ɴᴜᴍʙᴇʀ: <code>{_esc(str(number))}</code>\\n"
+        f"{status_line}\\n{_DIV()}"
+    )
 
 def format_aadhar_result_bold(api_result, aadhar):
     IST = ZoneInfo("Asia/Kolkata")
