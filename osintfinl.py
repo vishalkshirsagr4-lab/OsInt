@@ -4064,17 +4064,18 @@ def get_number_info(number):
             return {'success': False, 'msg': f'HTTP {response.status_code}'}
         data = response.json()
         print(f"[number_info] Response keys: {list(data.keys())}")
-        if not data.get('status', False):
-            return {'success': False, 'msg': data.get('msg', 'No data found')}
-        records = data.get('data', {}).get('records', [])
-        if not records:
-            return {'success': False, 'msg': 'No records found'}
+        if not data.get('success', False) or not data.get('data', {}).get('success', False):
+            return {'success': False, 'msg': 'API request unsuccessful'}
+        api_data = data.get('data', {})
+        found = bool(api_data.get('found', False))
+        count = int(api_data.get('count', 0))
+        if not found or count == 0:
+            return {'success': False, 'msg': 'No results found'}
         return {
-            'success': True,
-            'data': records,
-            '_raw': data,
-            'total_records': data.get('data', {}).get('total_records', len(records))
-        }
+          'success': True,
+          'found': found,
+          'count': count
+         }
 
     except requests.exceptions.Timeout:
         return {'success': False, 'msg': 'API timeout - dobara try karo'}
