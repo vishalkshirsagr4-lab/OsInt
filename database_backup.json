@@ -1,7 +1,13 @@
 {
   "backup_meta": {
     "version": "3.1",
-    "created_at": "2026-11-21 02:35:53"
+    "created_at": "2026-11-21 02:36:24",
+    "stats": {
+      "main_users": 5,
+      "main_admins": 1,
+      "clone_bots": 0,
+      "total_clone_users": 0
+    }
   },
   "main_bot": {
     "users": [
@@ -80,8 +86,8 @@
         "is_premium": 0,
         "premium_until": null,
         "joined_channels": "[]",
-        "total_searches": 1,
-        "last_active": "2026-11-21 02:35:26",
+        "total_searches": 0,
+        "last_active": "2026-11-20 16:58:41",
         "money": 0,
         "clone_bots": 0
       }
@@ -119,16 +125,7 @@
       }
     ],
     "referrals": [],
-    "search_history": [
-      {
-        "id": 1,
-        "user_id": 9080945048,
-        "search_type": "typed_userid",
-        "query": "7941870327",
-        "search_date": "2026-11-21 02:35:26",
-        "result": "{\"success\": false, \"has_real_data\": false, \"tg_id\": \"7941870327\", \"username\": \"Piko_866\", \"full_name\": \"Piko\", \"first_name\": \"Piko\", \"last_name\": \"\", \"bio\": \"Heheheheh\", \"phone\": \"\", \"country\": \"\", \"country_code\": \"\", \"is_bot\": false, \"member_count\": null, \"activity\": {}, \"_raw\": {\"tg_id\": \"7941870327\", \"username\": \"Piko_866\", \"first_name\": \"Piko\", \"last_name\": \"\", \"full_name\": \"Piko\", \"bio\": \"Heheheheh\", \"is_bot\": false, \"member_count\": null, \"active_usernames\": [\"Piko_866\"]}}"
-      }
-    ],
+    "search_history": [],
     "bomber_history": [],
     "logs": []
   },
