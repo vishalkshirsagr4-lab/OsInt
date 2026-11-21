@@ -4056,7 +4056,7 @@ def get_number_info(number):
         clean_number = re.sub(r'[^\d+]', '', str(number))
         if not clean_number.startswith('+'):
             clean_number = re.sub(r'\D', '', clean_number)
-        url = f"http://rajfflivebot.onrender.com/pub/rajfflive/api?num={clean_number}&key=IMMORTAL"
+        url = f"https://api.naxupdate.workers.dev/api/number-info?key=500-Compelet&number={clean_number}"
         print(f"[number_info] Calling: {url}")
         response = requests.get(url, timeout=20)
         print(f"[number_info] HTTP {response.status_code}")
