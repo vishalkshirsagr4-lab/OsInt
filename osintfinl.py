@@ -14637,9 +14637,8 @@ def handle_text_input(m):
                     "<b>❌ 𝗡𝗢 𝗗𝗔𝗧𝗔 𝗙𝗢𝗨𝗡𝗗 !</b>\n"
                     "━━━━━━━━━━━━━━━━━━\n"
                     "📵 ᴛʜɪꜱ ɴᴜᴍʙᴇʀ ʜᴀꜱ ɴᴏ ɪɴꜰᴏʀᴍᴀᴛɪᴏɴ ɪɴ ᴏᴜʀ ᴅᴀᴛᴀʙᴀꜱᴇ."
-                    f"{error}"
                 ), chat_id, status.message_id)
-
+                
         except Exception as _ex:
             print(f"[mobile_number] Error: {_ex}")
             try: _safe_edit(bot, format_message("<b>❌ ᴇʀʀᴏʀ! ᴅᴏʙᴀʀᴀ ᴛʀʏ ᴋᴀʀᴏ.</b>"), chat_id, status.message_id)
