@@ -4047,86 +4047,121 @@ def format_message(text):
     """Format message with bot credit"""
     return f"<blockquote>{text}\n\n{BOT_CREDIT}</blockquote>"
 
+
 def get_number_info(number):
     """
-    Fetch number info from RAJFFLIVE API.
+    Fetch number info from apppy-production API.
+    Returns: {'success': bool, 'found': bool, 'count': int, 'data': [records], 'extra': {...}}
     """
+    import re
+    import requests
+
+    EMPTY_VALS = (None, '', 'N/A', 'None', 'null', 'undefined', 'false', 'False', 'none')
+
     try:
-        import re
-        clean_number = re.sub(r'[^\d+]', '', str(number))
-        if not clean_number.startswith('+'):
-            clean_number = re.sub(r'\D', '', clean_number)
-        url = f"https://api.naxupdate.workers.dev/api/number-info?key=500-Compelet&number={clean_number}"
+        # ---- clean number ----
+        clean_number = re.sub(r'\D', '', str(number))
+        if not clean_number:
+            return {'success': False, 'msg': 'Invalid number', 'data': []}
+
+        url = (
+            "https://apppy-production-f420a66a.up.railway.app/api/number"
+            f"?key=1-week-enjoy&num={clean_number}"
+        )
         print(f"[number_info] Calling: {url}")
-        response = requests.get(url, timeout=20)
+
+        # 🔑 a browser-like User-Agent helps bypass the "Checking your browser" page
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": "application/json",
+        }
+        response = requests.get(url, headers=headers, timeout=25)
         print(f"[number_info] HTTP {response.status_code}")
+
         if response.status_code != 200:
-            return {'success': False, 'msg': f'HTTP {response.status_code}'}
-        data = response.json()
-        print(f"[number_info] Response keys: {list(data.keys())}")
-        if not data.get('success', False) or not data.get('data', {}).get('success', False):
-            return {'success': False, 'msg': 'API request unsuccessful'}
-        api_data = data.get('data', {})
-        found = bool(api_data.get('found', False))
-        count = int(api_data.get('count', 0))
-        if not found or count == 0:
-            return {'success': False, 'msg': 'No results found'}
-        return {
-          'success': True,
-          'found': found,
-          'count': count
-         }
+            return {'success': False, 'msg': f'HTTP {response.status_code}', 'data': []}
 
-    except requests.exceptions.Timeout:
-        return {'success': False, 'msg': 'API timeout - dobara try karo'}
-    except Exception as e:
-        print(f"[number_info] Error: {e}")
-        return {'success': False, 'msg': str(e)}
-        # PRIMARY: {"success":true, "result": {"results": [...]}}
-        inner = raw.get("result") or {}
-        if isinstance(inner, dict):
-            recs = inner.get("results") or inner.get("data") or []
-            if isinstance(recs, list):
-                records = [r for r in recs if isinstance(r, dict)]
+        # ---- Cloudflare / heavy-traffic interstitial guard ----
+        if 'text/html' in response.headers.get('Content-Type', ''):
+            return {
+                'success': False,
+                'msg': 'API blocked by browser check — try again later',
+                'data': [],
+            }
 
-        # FALLBACK: {"data": [...]}
-        if not records:
-            data_field = raw.get("data") or []
-            if isinstance(data_field, list):
-                records = [r for r in data_field if isinstance(r, dict)]
+        raw = response.json()
+        if not isinstance(raw, dict):
+            return {'success': False, 'msg': 'Invalid JSON shape', 'data': []}
 
-        # FALLBACK: numbered keys {"0":{rec}, "1":{rec}}
-        if not records:
-            numbered = [v for k, v in raw.items()
-                        if str(k).isdigit() and isinstance(v, dict)]
-            if numbered:
-                records = numbered
+        print(f"[number_info] Response keys: {list(raw.keys())}")
 
-        # FALLBACK: root flat dict as single record
-        if not records:
-            person_keys = {'name','mobile','phone','address','fname','email','operator','state'}
-            if any(str(k).lower() in person_keys for k in raw.keys()):
-                records = [raw]
+        # ---- success check ----
+        if not raw.get('success', False):
+            return {
+                'success': False,
+                'msg': raw.get('message') or 'API unsuccessful',
+                'data': [],
+            }
 
-        # Filter out empty records
+        # ---- records: THIS API puts them under 'results' ----
+        results = raw.get('results') or []
+        if isinstance(results, dict):
+            results = [results]
+        if not isinstance(results, list):
+            results = []
+
+        # keep only non-empty dicts
         real = []
-        for rec in records:
-            if not isinstance(rec, dict): continue
+        for rec in results:
+            if not isinstance(rec, dict):
+                continue
             has_value = any(
-                str(k).lower() not in META_KEYS and v not in EMPTY_VALS
-                for k, v in rec.items() if not isinstance(v, (dict, list))
+                v not in EMPTY_VALS
+                for v in rec.values()
+                if not isinstance(v, (dict, list))
             )
             if has_value:
                 real.append(rec)
 
-        if not real:
-            return {'success': False, 'data': []}
-        return {'success': True, 'data': real}
+        count = int(raw.get('total', 0) or 0) or len(real)
 
+        if not real:
+            return {
+                'success': True,
+                'found': False,
+                'count': 0,
+                'data': [],
+                'extra': {
+                    'truecaller_name': raw.get('truecaller_name'),
+                    'cached': raw.get('cached'),
+                },
+            }
+
+        # ---- return everything the renderer needs ----
+        return {
+            'success': True,
+            'found': True,
+            'count': count,
+            'data': real,
+            'extra': {
+                'truecaller_name': raw.get('truecaller_name'),
+                'cached': raw.get('cached'),
+                'cached_at': raw.get('cached_at'),
+                'by': raw.get('by'),
+            },
+        }
+
+    except requests.exceptions.Timeout:
+        return {'success': False, 'msg': 'API timeout - try again', 'data': []}
+    except requests.exceptions.RequestException as e:
+        return {'success': False, 'msg': f'Network error: {e}', 'data': []}
     except Exception as e:
         print(f"[number_info] Error: {e}")
-        return {'success': False, 'data': []}
-
+        return {'success': False, 'msg': str(e), 'data': []}
 
 def get_phone_from_username(username: str) -> dict:
     """Username lookup via shadow-osint userid API."""
@@ -5996,19 +6031,34 @@ _DIV_STR = "━━━━━━━━━━━━━━━━━━"  # ✅ BUG 1
 
 def format_number_info_bold(data, number):
     """
-    Render only non-identifying lookup status.
-    The number-info provider may return sensitive personal identity records;
-    never display or persist those fields in the Telegram response.
+    Render the number-info response as a Telegram HTML message.
     """
-    IST = ZoneInfo("Asia/Kolkata")
-    now = datetime.now(IST).strftime("%d %b %Y %I:%M %p")
-    records = (data or {}).get('data', [])
-    if not isinstance(records, list):
-        records = [records] if records else []
+    import json as _json
+    from datetime import datetime
+    try:
+        from zoneinfo import ZoneInfo
+        IST = ZoneInfo("Asia/Kolkata")
+    except Exception:
+        from datetime import timezone, timedelta
+        IST = timezone(timedelta(hours=5, minutes=30))
 
-    # ---- status line (computed FIRST, no dead code) ----
+    now = datetime.now(IST).strftime("%d %b %Y %I:%M %p")
+
+    # ---- normalize records ----
+    records = (data or {}).get('data', [])
+    if isinstance(records, dict):
+        records = [records]
+    elif not isinstance(records, list):
+        records = []
+    records = [r for r in records if isinstance(r, dict)]
+
+    extra = (data or {}).get('extra', {}) or {}
+    truecaller = extra.get('truecaller_name')
+    cached = extra.get('cached')
+
+    # ---- status line ----
     result = data or {}
-    found = bool(result.get('success') and result.get('found'))
+    found = bool(result.get('success') and result.get('found', True))
     try:
         count = max(0, int(result.get('count', 0) or 0))
     except (TypeError, ValueError):
@@ -6021,47 +6071,51 @@ def format_number_info_bold(data, number):
         status_line = "└❌ ɴᴏ ʀᴇꜱᴜʟᴛꜱ ꜰᴏᴜɴᴅ"
 
     KEY_MAP = {
-        'name':('👤','ɴᴀᴍᴇ'),'fullname':('👤','ɴᴀᴍᴇ'),'mobile':('📱','ᴍᴏʙɪʟᴇ'),
-        'phone':('📱','ᴩʜᴏɴᴇ'),'fname':('👨','ꜰᴀᴛʜᴇʀ'),'fathername':('👨','ꜰᴀᴛʜᴇʀ'),
-        'father':('👨','ꜰᴀᴛʜᴇʀ'),'alt':('📲','ᴀʟᴛ ɴᴜᴍ'),'altmobile':('📲','ᴀʟᴛ ᴍᴏʙɪʟᴇ'),
-        'alternatemobile':('📲','ᴀʟᴛ ᴍᴏʙɪʟᴇ'),'address':('🏠','ᴀᴅᴅʀᴇꜱꜱ'),
+        'name':('👤','ɴᴀᴍᴇ'),'fullname':('👤','ɴᴀᴍᴇ'),
+        'mobile':('📱','ᴍᴏʙɪʟᴇ'),'phone':('📱','ᴩʜᴏɴᴇ'),
+        'fname':('👨','ꜰᴀᴛʜᴇʀ'),'fathername':('👨','ꜰᴀᴛʜᴇʀ'),'father':('👨','ꜰᴀᴛʜᴇʀ'),
+        'alt':('📲','ᴀʟᴛ ɴᴜᴍ'),'altmobile':('📲','ᴀʟᴛ ᴍᴏʙɪʟᴇ'),
+        'alternatemobile':('📲','ᴀʟᴛ ᴍᴏʙɪʟᴇ'),
+        'address':('🏠','ᴀᴅᴅʀᴇꜱꜱ'),
         'city':('🌆','ᴄɪᴛʏ'),'district':('🗺️','ᴅɪꜱᴛʀɪᴄᴛ'),'state':('🏞️','ꜱᴛᴀᴛᴇ'),
-        'pincode':('📍','ᴩɪɴᴄᴏᴅᴇ'),'pin':('📍','ᴩɪɴ'),'circle':('📡','ᴄɪʀᴄʟᴇ'),
-        'operator':('📡','ᴏᴩᴇʀᴀᴛᴏʀ'),'telecom':('📡','ᴛᴇʟᴇᴄᴏᴍ'),'region':('🌍','ʀᴇɢɪᴏɴ'),
-        'country':('🌍','ᴄᴏᴜɴᴛʀʏ'),'email':('📧','ᴇᴍᴀɪʟ'),'dob':('🎂','ᴅᴏʙ'),
-        'gender':('⚧','ɢᴇɴᴅᴇʀ'),'age':('🎂','ᴀɢᴇ'),'aadhaar':('🪪','ᴀᴀᴅʜᴀᴀʀ'),
-        'aadhar':('🪪','ᴀᴀᴅʜᴀᴀʀ'),'id':('🆔','ɪᴅ'),
+        'pincode':('📍','ᴩɪɴᴄᴏᴅᴇ'),'pin':('📍','ᴩɪɴ'),
+        'circle':('📡','ᴄɪʀᴄʟᴇ'),'operator':('📡','ᴏᴩᴇʀᴀᴛᴏʀ'),'telecom':('📡','ᴛᴇʟᴇᴄᴏᴍ'),
+        'region':('🌍','ʀᴇɢɪᴏɴ'),'country':('🌍','ᴄᴏᴜɴᴛʀʏ'),
+        'email':('📧','ᴇᴍᴀɪʟ'),'dob':('🎂','ᴅᴏʙ'),'gender':('⚧','ɢᴇɴᴅᴇʀ'),
+        'age':('🎂','ᴀɢᴇ'),
+        'aadhaar':('🪪','ᴀᴀᴅʜᴀᴀʀ'),'aadhar':('🪪','ᴀᴀᴅʜᴀᴀʀ'),
+        'id':('🆔','ɪᴅ'),
     }
     SKIP = {'developer','dev','numbere','number','key','apikey','query','status','success',
-            'time','Time','source','_raw','error','message','msg','count','total','result','found'}
+            'time','Time','source','_raw','error','message','msg','count','total',
+            'result','results','found','by','cached','cached_at'}
     EMPTY = (None,'','N/A','None','null','undefined','false','False','none')
     skip_lower = {s.lower().replace('_','') for s in SKIP}
 
-    # ---- header + status ----
     total = len(records)
     lines = [
         "📋 <b>𝗠𝗢𝗕𝗜𝗟𝗘 𝗡𝗨𝗠𝗕𝗘𝗥 𝗜𝗡𝗙𝗢</b>",
         f"{_DIV()}",
         f"🕐 {now}",
         f"📞 ɴᴜᴍʙᴇʀ: <code>{_esc(str(number))}</code>",
-        f"📊 ᴛᴏᴛᴀʟ ʀᴇᴄᴏʀᴅꜱ: <b>{total}</b>",
-        status_line,
-        f"{_DIV()}",
     ]
+    if truecaller and truecaller not in EMPTY:
+        lines.append(f"📛 ᴛʀᴜᴇᴄᴀʟʟᴇʀ: <b>{_esc(str(truecaller))}</b>")
+    lines.append(f"📊 ᴛᴏᴛᴀʟ ʀᴇᴄᴏʀᴅꜱ: <b>{total}</b>")
+    if cached is not None:
+        lines.append(f"⚡ ᴄᴀᴄʜᴇᴅ: <b>{'Yes' if cached else 'No'}</b>")
+    lines.append(status_line)
+    lines.append(f"{_DIV()}")
 
-    # ---- no records early exit ----
     if not records:
         lines.append("└❌ ɴᴏ ʀᴇᴄᴏʀᴅꜱ ꜰᴏᴜɴᴅ")
         lines.append(f"{_DIV()}")
         return format_message("\n".join(lines))
 
-    # ---- per-record field rendering ----
+    # ---- render each record ----
     for idx, item in enumerate(records, 1):
-        if not isinstance(item, dict):
-            continue
-        if total > 1:
-            lines.append("")
-            lines.append(f"👤 <b>ʀᴇᴄᴏʀᴅ {idx}/{total}</b>")
+        lines.append("")
+        lines.append(f"👤 <b>ʀᴇᴄᴏʀᴅ {idx}/{total}</b>")
 
         rec_fields = []
         for k, v in item.items():
@@ -6071,12 +6125,16 @@ def format_number_info_bold(data, number):
             if v in EMPTY:
                 continue
             if isinstance(v, (dict, list)):
-                continue
-            em, label = KEY_MAP.get(
-                kl,
-                (get_field_emoji(k),
-                 str(k).replace('_',' ').replace('-',' ').title())
-            )
+                v = _json.dumps(v, ensure_ascii=False)
+            if kl in KEY_MAP:
+                em, label = KEY_MAP[kl]
+            else:
+                em = "🔹"
+                try:
+                    em = get_field_emoji(k) or em
+                except Exception:
+                    pass
+                label = str(k).replace('_',' ').replace('-',' ').title()
             rec_fields.append((em, label, _esc(str(v))))
 
         if not rec_fields:
