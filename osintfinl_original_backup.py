@@ -974,13 +974,7 @@ def _cleanup_result_pages():
 GITHUB_TOKEN   = os.environ.get("GH_TOKEN", "")
 GITHUB_REPO    = os.environ.get("GH_REPO", "")
 
-def _clean_repo(r: str) -> str:
-    """Strip any https://github.com/ or github.com/ prefix, return just user/repo."""
-    r = r.strip()
-    for pfx in ("https://github.com/", "http://github.com/", "github.com/"):
-        if r.startswith(pfx):
-            r = r[len(pfx):]
-    return r.strip("/")
+from utils.validation import _clean_repo
 
 GITHUB_REPO = _clean_repo(GITHUB_REPO)
 GITHUB_DB_PATH = os.environ.get("GH_DB_PATH", "database.db")
