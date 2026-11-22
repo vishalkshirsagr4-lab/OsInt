@@ -1745,7 +1745,7 @@ def load_channels_from_db():
         new_usernames = [ch[1] for ch in real_channels if ch[1] is not None]
         with _channels_lock:
             bot_state.FORCE_JOIN_LINKS = new_links
-            bot_state.FORCE_JOIN_USERNAMES = new.usernames
+            bot_state.FORCE_JOIN_USERNAMES = new_usernames
     except Exception as e:
         print(f"⚠️ load_channels_from_db: {e}")
 
@@ -9828,7 +9828,7 @@ def help_btn(m: telebot.types.Message) -> None:
 
 # Per-user history page tracking
       # uid -> current history sub-menu ('main', 'search', 'bomber', 'stats')
-# uid -> current search page number
+      # # uid -> current search page number
 
 def get_user_search_history(user_id, limit=50, offset=0):
     """Fetch user's search history from DB with pagination."""
