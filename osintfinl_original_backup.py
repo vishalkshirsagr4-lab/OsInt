@@ -480,6 +480,7 @@ print("✅ SIGTERM/SIGINT handler registered — safe shutdown backup enabled")
 from config import BOT_TOKEN,OWNER_ID,DB_CHANNEL,LOGS_CHANNEL
 
 
+
 FREE_CREDITS = 5
 CLONE_BOT_REFERRALS_NEEDED = 20
 DAILY_CREDITS = 1
@@ -885,25 +886,6 @@ HITEK_FULL_INFO_API_URL = "https://hitek-info.onrender.com/search?query={}"
 HITEK_NUM_INFO_API_URL = "https://sh4dow-d4dy-hi-tek-num-info.vercel.app/?number={}&key=SH4DAW-D4DY"
 
 
-_real_bot = telebot.TeleBot(BOT_TOKEN)
-
-
-import threading as _proxy_tl
-_BOT_INSTANCE_CTX = _proxy_tl.local()
-
-class _BotProxy:
-    """Thread-aware proxy — same global 'bot' works for both main + clone bots."""
-    def __getattr__(self, name):
-        inst = getattr(_BOT_INSTANCE_CTX, 'instance', None)
-        return getattr(inst if inst is not None else _real_bot, name)
-    def __setattr__(self, name, value):
-        if name.startswith('_'):
-            object.__setattr__(self, name, value)
-            return
-        inst = getattr(_BOT_INSTANCE_CTX, 'instance', None)
-        setattr(inst if inst is not None else _real_bot, name, value)
-
-bot = _BotProxy()
 
 
 FORCE_JOIN_LINKS: list = []
