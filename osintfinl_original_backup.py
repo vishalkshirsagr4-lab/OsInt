@@ -22,6 +22,16 @@ import platform  # ✅ BUG FIX: missing import — used in btn_host_status
 import threading
 import psutil  # for CPU/memory stats
 
+
+from core import state as bot_state
+user_state = bot_state.user_state
+hist_pages = bot_state.hist_pages
+hist_search_page = bot_state.hist_search_page
+user_pages = bot_state.user_pages
+admin_page = bot_state.admin_page
+admin_selected_group = bot_state.admin_selected_group
+_confirm_pending = bot_state._confirm_pending
+
 # ==================== FLASK WEB SERVER (FOR RENDER) ====================
 # ✅ CRITICAL: Flask ko PEHLE start karo — port bind hone se pehle Render service kill kar deta hai
 # Agar port 10000 pe 60s mein bind nahi hua to Render "Port scan timeout" de ke kill karta hai
@@ -888,20 +898,6 @@ HITEK_NUM_INFO_API_URL = "https://sh4dow-d4dy-hi-tek-num-info.vercel.app/?number
 
 
 
-FORCE_JOIN_LINKS: list = []
-FORCE_JOIN_USERNAMES: list = []
-
-# USER STATE & BYPASS MODE TRACKING
-user_state = {}           # For command states
-hist_pages: dict = {}     # uid -> history sub-menu state ('main','search','bomber','stats')
-# user_pages — tracks current keyboard page per user
-user_pages: dict = {}  # ✅ BUG FIX: Was removed by mistake but is actively used
-admin_page = {}           # Per-user admin page tracking (thread-safe)
-admin_selected_group: dict = {}  # Track which group admin has selected for group welcome settings
-
-
-_confirm_pending: dict = {}
-
 
 import threading as _tl
 _CLONE_CTX: dict = {}        # token -> {owner_user_id, bot_name}
@@ -1736,7 +1732,7 @@ except Exception as _me:
 _channels_lock = threading.Lock()  # ✅ FIX: thread-safe channel updates
 
 def load_channels_from_db():
-    global FORCE_JOIN_LINKS, FORCE_JOIN_USERNAMES
+    
     try:
         local_conn = sqlite3.connect('bot.db', timeout=15)
         local_c = local_conn.cursor()
@@ -1748,8 +1744,8 @@ def load_channels_from_db():
         new_links = [ch[0] for ch in real_channels]
         new_usernames = [ch[1] for ch in real_channels if ch[1] is not None]
         with _channels_lock:
-            FORCE_JOIN_LINKS = new_links
-            FORCE_JOIN_USERNAMES = new_usernames
+            bot_state.FORCE_JOIN_LINKS = new_links
+            bot_state.FORCE__JOIN_USERNAMES = new.usernames
     except Exception as e:
         print(f"⚠️ load_channels_from_db: {e}")
 
@@ -9831,7 +9827,7 @@ def help_btn(m: telebot.types.Message) -> None:
 # ── User History Feature ──
 
 # Per-user history page tracking
-hist_pages = {}       # uid -> current history sub-menu ('main', 'search', 'bomber', 'stats')
+      # uid -> current history sub-menu ('main', 'search', 'bomber', 'stats')
 hist_search_page = {} # uid -> current search page number
 
 def get_user_search_history(user_id, limit=50, offset=0):
