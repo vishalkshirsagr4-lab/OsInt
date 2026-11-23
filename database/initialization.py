@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime
 
 from config import OWNER_ID
+from database.connection import DB_PATH
 
 
 def init_db():
@@ -13,7 +14,7 @@ def init_db():
     Runtime data-access functions open their own SQLite connections. Keeping
     this connection local avoids hidden module globals and cross-module state.
     """
-    conn = sqlite3.connect('bot.db', timeout=30)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     c = conn.cursor()
     # ✅ WAL mode: Render par concurrent reads/writes ke liye zaroori
     try:
