@@ -1015,7 +1015,12 @@ def _cur_owner():
 
 
 result_pages: dict = {}   # uid -> pagination state
-zzzzzzz
+def _cleanup_result_pages():
+    import time as _t
+    now = _t.time()
+    stale = [k for k, v in list(result_pages.items()) if isinstance(v , dict) and now - v.get('ts',now)>1800]
+    for k in stale:
+        result_pages.pop(k,None)
 
 # ── GitHub DB Backup Config ──
 # ⚠️ SECURITY FIX: GitHub token environment variable se load ho raha hai
