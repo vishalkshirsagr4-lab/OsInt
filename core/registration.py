@@ -1,4 +1,6 @@
 
+import sqlite3
+
 def get_user(user_id):
     local_conn = sqlite3.connect('bot.db', timeout=15)
     local_c = local_conn.cursor()
