@@ -6,7 +6,6 @@ from datetime import datetime
 
 from config import OWNER_ID
 
-
 def init_db():
     """Initialize DB connection and create all tables. Call after restore."""
     global conn, c
