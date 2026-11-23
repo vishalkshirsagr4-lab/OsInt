@@ -32,6 +32,8 @@ admin_page = bot_state.admin_page
 admin_selected_group = bot_state.admin_selected_group
 _confirm_pending = bot_state._confirm_pending
 
+from core.registration import (get_user, update_user, get_referral_count, get_money, add_money, remove_money, get_daily_claim_count, get_redeem_count, deduct_credit, add_credits, remove_credits, set_credits)
+from core.statistics import get_stats
 # ==================== FLASK WEB SERVER (FOR RENDER) ====================
 # ✅ CRITICAL: Flask ko PEHLE start karo — port bind hone se pehle Render service kill kar deta hai
 # Agar port 10000 pe 60s mein bind nahi hua to Render "Port scan timeout" de ke kill karta hai
@@ -2017,14 +2019,6 @@ def clone_delete_search_history(clone_token):
     except Exception: return False
 
 
-def get_user(user_id):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    local_c.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
-    result = local_c.fetchone()
-    local_conn.close()
-    return result
-
 def add_user(user_id, username, first_name, referrer=None):
     local_conn = sqlite3.connect('bot.db', timeout=15)
     local_c = local_conn.cursor()
@@ -2065,83 +2059,13 @@ def add_user(user_id, username, first_name, referrer=None):
     finally:
         try: local_conn.close()
         except Exception: pass
-def update_user(user_id, **kwargs):
-    ALLOWED_COLUMNS = {
-        'username', 'first_name', 'join_date', 'referrer', 'credits',
-        'is_blocked', 'is_premium', 'premium_until', 'joined_channels',
-        'total_searches', 'last_active', 'money', 'clone_bots'
-    }
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        for key, value in kwargs.items():
-            if key not in ALLOWED_COLUMNS:
-                print(f"⚠️ update_user: Invalid column '{key}' blocked!")
-                continue
-            local_c.execute(f"UPDATE users SET {key}=? WHERE user_id=?", (value, user_id))
-        local_conn.commit()
-    except Exception as e:
-        print(f"ᴇʀʀᴏʀ ᴜᴩᴅᴀᴛɪɴɢ ᴜꜱᴇʀ: {e}")
-    finally:
-        local_conn.close()
 
-def get_referral_count(user_id):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    local_c.execute("SELECT COUNT(*) FROM referrals WHERE referrer=?", (user_id,))
-    result = local_c.fetchone()[0] or 0
-    local_conn.close()
-    return result
 
-def get_money(user_id):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("SELECT money FROM users WHERE user_id=?", (user_id,))
-        r = local_c.fetchone()
-        return r[0] if r else 0
-    except Exception:
-        return 0
-    finally:
-        local_conn.close()
 
-def add_money(user_id, amount):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("UPDATE users SET money = money + ? WHERE user_id = ?", (amount, user_id))
-        local_conn.commit()
-    finally:
-        local_conn.close()
 
-def remove_money(user_id, amount):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("UPDATE users SET money = MAX(0, money - ?) WHERE user_id = ?", (amount, user_id))
-        local_conn.commit()
-    finally:
-        local_conn.close()
 
-def get_daily_claim_count(user_id):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("SELECT COUNT(*) FROM daily_claims WHERE user_id=?", (user_id,))
-        r = local_c.fetchone()
-        return r[0] if r else 0
-    finally:
-        local_conn.close()
 
-def get_redeem_count(user_id):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("SELECT COUNT(*) FROM redeemed_users WHERE user_id=?", (user_id,))
-        r = local_c.fetchone()
-        return r[0] if r else 0
-    finally:
-        local_conn.close()
+
 
 def claim_daily(user_id):
     local_conn = sqlite3.connect('bot.db', timeout=15)
@@ -2201,52 +2125,9 @@ def save_search_history(user_id, search_type, query, result):
             print(f"[bg] logs_channel error: {e}")
     threading.Thread(target=_bg, daemon=True).start()
 
-def deduct_credit(user_id):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("UPDATE users SET credits = MAX(0, credits - 1) WHERE user_id = ?", (user_id,))
-        local_conn.commit()
-    except Exception as e:
-        print(f"ᴇʀʀᴏʀ ᴅᴇᴅᴜᴄᴛɪɴɢ ᴄʀᴇᴅɪᴛ: {e}")
-    finally:
-        local_conn.close()
 
-def add_credits(user_id, amount):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("UPDATE users SET credits = credits + ? WHERE user_id = ?", (amount, user_id))
-        local_conn.commit()
-        return True
-    except Exception:
-        return False
-    finally:
-        local_conn.close()
 
-def remove_credits(user_id, amount):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("UPDATE users SET credits = credits - ? WHERE user_id = ? AND credits >= ?", (amount, user_id, amount))
-        local_conn.commit()
-        return local_c.rowcount > 0
-    except Exception:
-        return False
-    finally:
-        local_conn.close()
 
-def set_credits(user_id, amount):
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    try:
-        local_c.execute("UPDATE users SET credits = ? WHERE user_id = ?", (amount, user_id))
-        local_conn.commit()
-        return True
-    except Exception:
-        return False
-    finally:
-        local_conn.close()
 
 def get_all_users():
     local_conn = sqlite3.connect('bot.db', timeout=15)
@@ -2256,30 +2137,6 @@ def get_all_users():
     local_conn.close()
     return result
 
-def get_stats():
-    local_conn = sqlite3.connect('bot.db', timeout=15)
-    local_c = local_conn.cursor()
-    
-    total = local_c.execute("SELECT COUNT(*) FROM users").fetchone()[0] or 0
-    today = local_c.execute("SELECT COUNT(*) FROM users WHERE DATE(join_date)=DATE('now')").fetchone()[0] or 0
-    searches = local_c.execute("SELECT COUNT(*) FROM search_history").fetchone()[0] or 0
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    premium = local_c.execute(
-        "SELECT COUNT(*) FROM users WHERE is_premium=1 AND premium_until > ?", (now_str,)
-    ).fetchone()[0] or 0
-    blocked = local_c.execute("SELECT COUNT(*) FROM users WHERE is_blocked=1").fetchone()[0] or 0
-    admins = local_c.execute("SELECT COUNT(*) FROM admins").fetchone()[0] or 0
-    channels = local_c.execute("SELECT COUNT(*) FROM force_join_channels").fetchone()[0] or 0
-    groups = local_c.execute("SELECT COUNT(*) FROM bot_groups").fetchone()[0] or 0
-    
-    active_today = 0
-    try:
-        active_today = local_c.execute("SELECT COUNT(*) FROM users WHERE DATE(last_active)=DATE('now')").fetchone()[0] or 0
-    except Exception:
-        active_today = 0
-    
-    local_conn.close()
-    return total, today, searches, premium, blocked, active_today, admins, channels, groups
 
 def _export_structured_json() -> dict:
     """Export all bot data as structured JSON for GitHub backup."""
