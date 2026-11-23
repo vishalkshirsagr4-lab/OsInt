@@ -16,3 +16,5 @@ admin_selected_group: dict = {}  # Track which group admin has selected for grou
 _confirm_pending: dict = {}
 
 hist_search_page: dict = {} # uid -> current search page number
+
+result_pages: dict = {}   # uid -> pagination state
