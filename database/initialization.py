@@ -8,13 +8,12 @@ from config import OWNER_ID
 
 
 def init_db():
-    """Initialize DB connection and create all tables. Call after restore."""
-    global conn, c
-    if 'conn' in globals() and conn:
-        try:
-            conn.close()
-        except Exception: pass
-    conn = sqlite3.connect('bot.db', check_same_thread=False, timeout=30)
+    """Create and migrate the schema using a short-lived local connection.
+
+    Runtime data-access functions open their own SQLite connections. Keeping
+    this connection local avoids hidden module globals and cross-module state.
+    """
+    conn = sqlite3.connect('bot.db', timeout=30)
     c = conn.cursor()
     # ✅ WAL mode: Render par concurrent reads/writes ke liye zaroori
     try:
@@ -395,3 +394,4 @@ def init_db():
         print(f"⚠️ channel_type migration error (ignored): {e}")
 
     print("✅ DB initialized successfully")
+    conn.close()
