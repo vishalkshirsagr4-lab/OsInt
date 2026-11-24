@@ -67,3 +67,28 @@ PREMIUM_PLANS = [
     (7,  150),
     (1,  40),
 ]
+
+
+
+# ── GitHub DB Backup Config ──
+# ⚠️ SECURITY FIX: GitHub token environment variable se load ho raha hai
+# Render > Environment mein set karo: GH_TOKEN, GH_REPO
+GITHUB_TOKEN   = os.environ.get("GH_TOKEN", "")
+GITHUB_REPO    = os.environ.get("GH_REPO", "")
+
+def _clean_repo(r: str) -> str:
+    """Strip any https://github.com/ or github.com/ prefix, return just user/repo."""
+    r = r.strip()
+    for pfx in ("https://github.com/", "http://github.com/", "github.com/"):
+        if r.startswith(pfx):
+            r = r[len(pfx):]
+    return r.strip("/")
+
+GITHUB_REPO = _clean_repo(GITHUB_REPO)
+GITHUB_DB_PATH = os.environ.get("GH_DB_PATH", "database.db")
+
+_BACKUP_MIN_INTERVAL = 15.0  # min 15s between uploads
+
+_ADMIN_CACHE_TTL = 300         # seconds
+
+INFINITE_CREDITS = "∞"
